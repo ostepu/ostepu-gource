@@ -1,0 +1,38 @@
+{
+    "main": {
+        "title": "Gource",
+        "description": "Erzeugt aus vorhandenen Git-Quellen der ausgewählten Pakete Rohdaten für Gource. Diese werden dann mit Gource und FFMPEG in eine *.mp4 umgewandelt."
+    },
+    "createGourceData": {
+        "createDesc": "Erzeugt einen Gource-Datensatz für alle ausgewählten Git-Quellen",
+        "create": "Erzeugen",
+        "filePath": "Pfad",
+        "fileSize": "Dateigröße",
+        "path": "Speicherort"
+    },
+    "listGourceData": {
+        "listDesc": "Ermittelt vorhandene Gource-Datensätze",
+        "list": "Gource-Rohdaten Auflisten",
+        "noData": "keine Datensätze",
+        "filePath": "Pfad",
+        "fileSize": "Dateigröße",
+        "select": "Datensatz auswählen"
+    },
+    "listGourceResult": {
+        "listDesc": "Ermittelt vorhandene Gource-Filmdaten",
+        "list": "Gource-Filmdaten Auflisten",
+        "noData": "keine Datensätze",
+        "filePath": "Pfad",
+        "fileSize": "Dateigröße",
+        "select": "Datensatz auswählen"
+    },
+    "executeGource": {
+        "executeDesc": "Führt Gource auf den ausgewählten Datensatz aus",
+        "execute": "Gource ausführen"
+    },
+    "convertGource": {
+        "executeDesc": "Führt FFMPEG auf den ausgewählten Datensatz aus",
+        "execute": "FFMPEG ausführen"
+    },
+    "listRepos": {"select": "Datensatz auswählen"}
+}
