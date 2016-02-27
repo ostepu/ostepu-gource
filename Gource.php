@@ -267,7 +267,6 @@ class Gource
         
         // lade die authorMap
         $authorMap = json_decode(file_get_contents(dirname(__FILE__). DIRECTORY_SEPARATOR . 'authorMap.json'),true);
-        $authorMap = array();
         
         function get_filename($name){
             /*if (substr($name,0,1) === "\""){
