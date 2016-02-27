@@ -43,22 +43,27 @@ class Gource
                                         )
                                     );
 
-    public static function getDefaults()
+    public static function getDefaults($data)
     {
         $res = array(
                      'path' => array('data[GOURCE][path]', '/var/www/gource'),
                      'selectedData' => array('data[GOURCE][selectedData]', NULL),
                      'selectedResult' => array('data[GOURCE][selectedResult]', NULL)
                      );
-        /*$pluginFiles = PlugInsInstallieren::getPluginFiles();
+        $res['repos'] = array();
+        $pluginFiles = PlugInsInstallieren::getPluginFiles($data);
         foreach($pluginFiles as $plug){
             $input = PlugInsInstallieren::gibPluginInhalt($data,$plug);
             if ($input !== null){
                 $entries = array();
                 PlugInsInstallieren::gibPluginEintraegeNachTyp($input, 'git', $entries);
-                foreach
+                foreach ($entries as $git){
+                    $path = $git['params']['path'];
+                    $name=md5($path);
+                    $res['repos'][$name] = array('data[GOURCE][REPO]['.$name.']', NULL);                  
+                }
             }
-        }*/
+        }
         return $res;
     }
 
@@ -78,7 +83,7 @@ class Gource
         Language::loadLanguageFile('de', self::$langTemplate, 'json', dirname(__FILE__).'/');
         Installation::log(array('text'=>Installation::Get('main','languageInstantiated')));
 
-        $def = self::getDefaults();
+        $def = self::getDefaults($data);
 
         $text = '';
         $text .= Design::erstelleVersteckteEingabezeile($console, $data['GOURCE']['path'], 'data[GOURCE][path]', $def['path'][1], true);
@@ -91,6 +96,11 @@ class Gource
             $data['GOURCE']['selectedResult'] = NULL;
         }
         $text .= Design::erstelleVersteckteEingabezeile($console, $data['GOURCE']['selectedResult'], 'data[GOURCE][selectedResult]', $def['selectedResult'][1], true);
+        
+        foreach($def['repos'] as $defName => $defVar){
+            $text .= Design::erstelleVersteckteEingabezeile($console, $data['GOURCE']['REPO'][$defName], $defVar[0], $defVar[1], true);
+        }
+        
         echo $text;
 
         self::$initialized = true;
@@ -120,6 +130,12 @@ class Gource
                 }
             }
             
+            function custom_sort($a,$b) {
+                $displayNameA = (isset($a['params']['name'])?$a['params']['name']:'');
+                $displayNameB = (isset($b['params']['name'])?$b['params']['name']:'');
+                return strcmp($displayNameA,$displayNameB);
+            }
+            usort($gitResults, "custom_sort");
             foreach($gitResults as $git){
                 $path = $git['params']['path'];
                 $displayName = (isset($git['params']['name'])?$git['params']['name']:'???');
