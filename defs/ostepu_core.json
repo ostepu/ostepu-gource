@@ -1,0 +1,57 @@
+{
+    "exclude": [
+        "Assistants/phpfastcache/",
+        "FS/FSPdf/_tcpdf_6.0.095/",
+        "Assistants/php-markdown-lib"
+    ],
+    "excludeContains": [
+        "/Slim/",
+        "/phpfastcache/",
+        "/fpdf/",
+        "/tfpdf/",
+        "jquery-2.0.3.min.js",
+        "retina.js",
+        "/html2pdf/",
+        "/ckeditor/",
+        "/MathJax/",
+        "/mathjax/",
+        "bootstrap.min.js",
+        "bootstrap-datetimepicker.min.js",
+        "/compiler/"
+    ],
+    "fileExtensionMap": {},
+    "authorMap": {
+        "root@lxc-uebplattform.informatik.uni-halle.de": [
+            "Sandro Wefel",
+            "sandro.wefel@informatik.uni-halle.de"
+        ],
+        "sandro.wefel@informatik.uni-halle.de": [
+            "Sandro Wefel",
+            "sandro.wefel@informatik.uni-halle.de"
+        ],
+        "hedtke@me.com": [
+            "Ivo Hedtke",
+            "ivo.hedtke@uni-osnabrueck.de"
+        ],
+        "florian.luecke@gmail.com": [
+            "Florian Lücke",
+            "florian.luecke@gmail.com"
+        ],
+        "florian.luecke2@gmail.com": [
+            "Florian Lücke",
+            "florian.luecke@gmail.com"
+        ],
+        "ralfbusch92@gmail.com": [
+            "Ralf Busch",
+            "ralfbusch92@gmail.com"
+        ],
+        "till.uhlig@student.uni-halle.de": [
+            "Till Uhlig",
+            "till.uhlig@student.uni-halle.de"
+        ],
+        "ma.brauer@live.de": [
+            "Max Brauer",
+            "ma.brauer@live.de"
+        ]
+    }
+}
