@@ -130,12 +130,12 @@ class Gource
                 }
             }
             
-            function custom_sort($a,$b) {
+            function custom_sort2($a,$b) {
                 $displayNameA = (isset($a['params']['name'])?$a['params']['name']:'');
                 $displayNameB = (isset($b['params']['name'])?$b['params']['name']:'');
                 return strcmp($displayNameA,$displayNameB);
             }
-            usort($gitResults, "custom_sort");
+            usort($gitResults, "custom_sort2");
             foreach($gitResults as $git){
                 $path = $git['params']['path'];
                 $displayName = (isset($git['params']['name'])?$git['params']['name']:'???');
