@@ -253,8 +253,21 @@ class Gource
         Installation::log(array('text'=>Installation::Get('main','functionEnd')));
         return null;
     }
-    
-    private static function filter($mode, $name){
+
+    private static function filter($mode, $name, $excludeList, $excludeContainsList)
+    {
+         //if ($mode === 'M') return true;
+        foreach($excludeList as $ex){
+            if (substr($name,0,strlen($ex)) === $ex){
+                return false;
+            }
+        }
+        
+        foreach($excludeContainsList as $ex){
+            if (strpos($name,$ex) !== false){
+                return false;
+            }
+        }
         return true;
     }
 
@@ -290,9 +303,6 @@ class Gource
             }
         }
         
-        // lade die authorMap
-        $authorMap = json_decode(file_get_contents(dirname(__FILE__). DIRECTORY_SEPARATOR . 'authorMap.json'),true);
-        
         function get_filename($name){
             /*if (substr($name,0,1) === "\""){
                 
@@ -301,12 +311,13 @@ class Gource
         }
         
         $allCommits=array();
+        $allTags=array();
         foreach($repositories as $repoName=>$repo){
             $res['repos'][$repoName] = array();
             $pathOld = getcwd();
             $out=null;
             @chdir($repo);
-            exec('(git log --decorate=full --stat --name-status --date=raw --pretty=format:\'%ad,%ae,%an,%d\' --find-renames --full-history --all --no-merges --no-notes) 2>&1', $out, $return);
+            exec('(git log --decorate=full --stat --name-status --date=raw --pretty=format:\'%ad,%ae,%an,%d\' --find-renames --full-history --all --no-notes) 2>&1', $out, $return);
             @chdir($pathOld);
             
             $res['repos'][$repoName]['logStatus'] = $return;
@@ -314,10 +325,27 @@ class Gource
                 continue;
             }
             
+            $authorMap = array();
+            $excludeList = array();
+            $excludeContainsList = array();
+            if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'defs' . DIRECTORY_SEPARATOR . $repoName . '.json')){
+                $tmp = json_decode(file_get_contents(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'defs' . DIRECTORY_SEPARATOR . $repoName . '.json'),true);
+                if (isset($tmp['authorMap'])){
+                    $authorMap = $tmp['authorMap'];
+                }
+                if (isset($tmp['exclude'])){
+                    $excludeList = $tmp['exclude'];
+                }
+                 if (isset($tmp['excludeContains'])){
+                    $excludeContainsList = $tmp['excludeContains'];
+                }
+            }
+            
             $commit = null;
             $commits = array();
             $authors = array();
             $anz = count($out);
+            $tags = array();
             for($i=0;$i<$anz;$i++){
                 $out[$i] = trim($out[$i],"'");
                 $commit = array('changes'=>array());
@@ -328,6 +356,19 @@ class Gource
                 
                 $commit['author']['mail'] = $line[1];
                 $commit['author']['name'] = $line[2];
+                if (isset($line[3]) && !empty($line[3])){
+                    $startsAt = strpos($line[3], "refs/tags/");
+                    if ($startsAt !== false){
+                        $startsAt += strlen("refs/tags/");
+                        $endsAt = strpos($line[3], ")", $startsAt);
+                        if ($endsAt !== false){
+                            $result = substr($line[3], $startsAt, $endsAt - $startsAt);
+                            $result = explode(',',$result);
+                            echo $result[0]."<br>";
+                            $tags[] = array('date'=>$o[0], 'name'=>$repoName.': '.$result[0]);
+                        }
+                    }
+                }
                 
                 if (isset($authorMap[$commit['author']['mail']])){
                     $a=$authorMap[$commit['author']['mail']];
@@ -337,27 +378,30 @@ class Gource
                 $authors[$commit['author']['name'].'_'.$commit['author']['mail']] = $commit['author'];
                 
                 $b=$i+1;
+                $ignoreChanges = false;
                 for(;$b<$anz;$b++){
                     if (strlen($out[$b])===0){
                         break;
                     }
                     $indikator = substr($out[$b],0,1);
-                    if ($indikator !== ' '){
+                    if ($indikator === '\''){
+                        //$ignoreChanges=true;
+                    }elseif ($indikator !== ' ' && !$ignoreChanges){
                             $p = substr($out[$b],1);
                         if ($indikator === 'R' || $indikator === 'C'){
                             $p = explode("\t",$p);
                             $p[2] = get_filename($p[2]);
                             $p[1] = get_filename($p[1]);
-                            if (self::filter($indikator,$p[2])){
+                            if (self::filter($indikator,$p[2], $excludeList, $excludeContainsList)){
                                 $commit['changes'][] = array('type'=>'A','file'=>$p[2]);
                             }
-                            if (self::filter($indikator,$p[1])){
+                            if (self::filter($indikator,$p[1], $excludeList, $excludeContainsList)){
                                 $commit['changes'][] = array('type'=>'D','file'=>$p[1]);
                             }
                         } else {
                             $p = trim($p);
                             $p = get_filename($p);
-                            if (self::filter($indikator,$p)){
+                            if (self::filter($indikator,$p, $excludeList, $excludeContainsList)){
                                 $commit['changes'][] = array('type'=>$indikator,'file'=>$p);
                             }
                         }
@@ -381,14 +425,17 @@ class Gource
             ///file_put_contents($location. DIRECTORY_SEPARATOR .$repoName.'_authors.json',json_encode($authors));
             unset($authors);
             $allCommits=array_merge($allCommits,$commits);
+            
+            $allTags=array_merge($allTags,$tags);
         }
         
         function custom_sort($a,$b) {
              return $a['date']>$b['date'];
         }
         usort($allCommits, "custom_sort");
+        usort($allTags, "custom_sort");
         
-        // umwandeln zu gource format
+        // commits umwandeln in das gource format
         $result = array();
         foreach($allCommits as $commit){
             foreach($commit['changes'] as $change){
@@ -397,10 +444,23 @@ class Gource
             }
         }
         
-        $filename = $location. DIRECTORY_SEPARATOR .'gource_'.date('Ymd_His').'.dat';
+        // tags umwandeln in das gource format
+        $tagResult = array();
+        foreach($allTags as $tag){
+            $dat = array($tag['date'],$tag['name']);
+            $tagResult[] = implode('|',$dat);
+        }
+        
+        $timestamp = date('Ymd_His');
+        $filename = $location. DIRECTORY_SEPARATOR .'gource_'.$timestamp.'.dat';
         file_put_contents($filename,implode("\n",$result));
         $res['outputFile'] = $filename;
         $res['outputSize'] = filesize($filename);
+        
+        $filenameTag = $location. DIRECTORY_SEPARATOR .'gource_'.$timestamp.'.captions';
+        file_put_contents($filenameTag,implode("\n",$tagResult));
+        $res['outputFileTag'] = $filenameTag;
+        $res['outputSizeTag'] = filesize($filenameTag);
         
         Installation::log(array('text'=>Installation::Get('main','functionEnd')));
         return $res;
@@ -456,7 +516,7 @@ class Gource
         $dir = dirname($file);
         $outputFile = $dir . DIRECTORY_SEPARATOR . pathinfo($file)['filename'] . '.ppm';
         
-        $exec = 'gource --path "'.$file.'"--load-config "'.dirname(__FILE__). DIRECTORY_SEPARATOR .'gource.conf" -o "'.$outputFile.'"';
+        $exec = 'gource --path "'.$file.'" --caption-file '.$tagFile.' --load-config "'.dirname(__FILE__). DIRECTORY_SEPARATOR .'gource.conf" -o "'.$outputFile.'"';
         Installation::execInBackground($exec);
             
         Installation::log(array('text'=>Installation::Get('main','functionEnd')));
@@ -469,9 +529,9 @@ class Gource
         $res = array();
         $file = $data['GOURCE']['selectedData'];
         $dir = dirname($file);
-        $outputFile = $dir . DIRECTORY_SEPARATOR . pathinfo($file)['filename'] . '.ppm';
+        $tagFile = $dir . DIRECTORY_SEPARATOR . pathinfo($file)['filename'] . '.captions';
         
-        $exec = 'gource --path "'.$file.'"--load-config "'.dirname(__FILE__). DIRECTORY_SEPARATOR .'gource.conf"';
+        $exec = 'gource --path "'.$file.'" --caption-file '.$tagFile.' --load-config "'.dirname(__FILE__). DIRECTORY_SEPARATOR .'gource.conf"';
         Installation::execInBackground($exec);
             
         Installation::log(array('text'=>Installation::Get('main','functionEnd')));
