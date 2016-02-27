@@ -29,6 +29,12 @@ class Gource
                                         'procedure'=>'installExecuteGource',
                                         'enabledInstall'=>true
                                         ),
+                                    'executeGourceOnly'=>array(
+                                        'name'=>'executeGourceOnly',
+                                        'event'=>array('actionExecuteGourceOnly'),
+                                        'procedure'=>'installExecuteGourceOnly',
+                                        'enabledInstall'=>true
+                                        ),
                                     'listGourceResult'=>array(
                                         'name'=>'listGourceResult',
                                         'event'=>array('actionListGourceResult'),
@@ -196,6 +202,9 @@ class Gource
             } else {
                 if (self::$onEvents['executeGource']['enabledInstall']){
                     $text .= Design::erstelleZeile($console, Installation::Get('executeGource','executeDesc',self::$langTemplate), 'e',  Design::erstelleSubmitButton(self::$onEvents['executeGource']['event'][0],Installation::Get('executeGource','execute',self::$langTemplate)), 'h');
+                }
+                if (self::$onEvents['executeGourceOnly']['enabledInstall']){
+                    $text .= Design::erstelleZeile($console, Installation::Get('executeGourceOnly','executeDesc',self::$langTemplate), 'e',  Design::erstelleSubmitButton(self::$onEvents['executeGourceOnly']['event'][0],Installation::Get('executeGourceOnly','execute',self::$langTemplate)), 'h');
                 }
             }
         }
@@ -448,6 +457,21 @@ class Gource
         $outputFile = $dir . DIRECTORY_SEPARATOR . pathinfo($file)['filename'] . '.ppm';
         
         $exec = 'gource --path "'.$file.'"--load-config "'.dirname(__FILE__). DIRECTORY_SEPARATOR .'gource.conf" -o "'.$outputFile.'"';
+        Installation::execInBackground($exec);
+            
+        Installation::log(array('text'=>Installation::Get('main','functionEnd')));
+        return $res;
+    }
+
+    public static function installExecuteGourceOnly($data, &$fail, &$errno, &$error)
+    {
+        Installation::log(array('text'=>Installation::Get('main','functionBegin')));
+        $res = array();
+        $file = $data['GOURCE']['selectedData'];
+        $dir = dirname($file);
+        $outputFile = $dir . DIRECTORY_SEPARATOR . pathinfo($file)['filename'] . '.ppm';
+        
+        $exec = 'gource --path "'.$file.'"--load-config "'.dirname(__FILE__). DIRECTORY_SEPARATOR .'gource.conf"';
         Installation::execInBackground($exec);
             
         Installation::log(array('text'=>Installation::Get('main','functionEnd')));

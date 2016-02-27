@@ -27,6 +27,10 @@
         "select": "Datensatz auswählen"
     },
     "executeGource": {
+        "executeDesc": "Führt Gource auf den ausgewählten Datensatz aus und wandelt ihn in eine *.ppm um",
+        "execute": "Gource umwandeln"
+    },
+    "executeGourceOnly": {
         "executeDesc": "Führt Gource auf den ausgewählten Datensatz aus",
         "execute": "Gource ausführen"
     },
