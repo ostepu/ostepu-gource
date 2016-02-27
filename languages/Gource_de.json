@@ -1,7 +1,7 @@
 {
     "main": {
         "title": "Gource",
-        "description": "Erzeugt aus vorhandenen Git-Quellen der ausgewählten Pakete Rohdaten für Gource. Diese werden dann mit Gource und FFMPEG in eine *.mp4 umgewandelt."
+        "description": "Erzeugt aus vorhandenen Git-Quellen, der ausgewählten Pakete, Rohdaten für Gource. Diese werden dann mit Gource und FFMPEG in eine *.mp4 umgewandelt."
     },
     "createGourceData": {
         "createDesc": "Erzeugt einen Gource-Datensatz für alle ausgewählten Git-Quellen",
