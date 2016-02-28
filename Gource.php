@@ -136,12 +136,12 @@ class Gource
                 }
             }
             
-            function custom_sort2($a,$b) {
-                $displayNameA = (isset($a['params']['name'])?$a['params']['name']:'');
-                $displayNameB = (isset($b['params']['name'])?$b['params']['name']:'');
-                return strcmp($displayNameA,$displayNameB);
-            }
-            usort($gitResults, "custom_sort2");
+            usort($gitResults, function ($a,$b) {
+                    $displayNameA = (isset($a['params']['name'])?$a['params']['name']:'');
+                    $displayNameB = (isset($b['params']['name'])?$b['params']['name']:'');
+                    return strcmp($displayNameA,$displayNameB);
+                });
+        
             foreach($gitResults as $git){
                 $path = $git['params']['path'];
                 $displayName = (isset($git['params']['name'])?$git['params']['name']:'???');
@@ -385,7 +385,8 @@ class Gource
                     }
                     $indikator = substr($out[$b],0,1);
                     if ($indikator === '\''){
-                        //$ignoreChanges=true;
+                        $b--;
+                        break;
                     }elseif ($indikator !== ' ' && !$ignoreChanges){
                             $p = substr($out[$b],1);
                         if ($indikator === 'R' || $indikator === 'C'){
@@ -429,11 +430,13 @@ class Gource
             $allTags=array_merge($allTags,$tags);
         }
         
-        function custom_sort($a,$b) {
+        
+        usort($allCommits, function ($a,$b) {
              return $a['date']>$b['date'];
-        }
-        usort($allCommits, "custom_sort");
-        usort($allTags, "custom_sort");
+        });
+        usort($allTags, function ($a,$b) {
+             return $a['date']>$b['date'];
+        });
         
         // commits umwandeln in das gource format
         $result = array();
