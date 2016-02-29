@@ -66,7 +66,7 @@ class Gource
                 foreach ($entries as $git){
                     $path = $git['params']['path'];
                     $name=md5($path);
-                    $res['repos'][$name] = array('data[GOURCE][REPO]['.$name.']', NULL);                  
+                    $res['repos'][$name] = array('data[GOURCE][REPO]['.$name.']', NULL);
                 }
             }
         }
@@ -97,16 +97,16 @@ class Gource
             $data['GOURCE']['selectedData'] = NULL;
         }
         $text .= Design::erstelleVersteckteEingabezeile($console, $data['GOURCE']['selectedData'], 'data[GOURCE][selectedData]', $def['selectedData'][1], true);
-       
+
         if (isset($data['GOURCE']['selectedResult']) && !file_exists($data['GOURCE']['selectedResult'])){
             $data['GOURCE']['selectedResult'] = NULL;
         }
         $text .= Design::erstelleVersteckteEingabezeile($console, $data['GOURCE']['selectedResult'], 'data[GOURCE][selectedResult]', $def['selectedResult'][1], true);
-        
+
         foreach($def['repos'] as $defName => $defVar){
             $text .= Design::erstelleVersteckteEingabezeile($console, $data['GOURCE']['REPO'][$defName], $defVar[0], $defVar[1], true);
         }
-        
+
         echo $text;
 
         self::$initialized = true;
@@ -135,13 +135,13 @@ class Gource
                     $gitResults = array_merge($entries, $gitResults);
                 }
             }
-            
+
             usort($gitResults, function ($a,$b) {
                     $displayNameA = (isset($a['params']['name'])?$a['params']['name']:'');
                     $displayNameB = (isset($b['params']['name'])?$b['params']['name']:'');
                     return strcmp($displayNameA,$displayNameB);
                 });
-        
+
             foreach($gitResults as $git){
                 $path = $git['params']['path'];
                 $displayName = (isset($git['params']['name'])?$git['params']['name']:'???');
@@ -176,7 +176,7 @@ class Gource
             if (!isset($content['gourceData'])){
                 $content['gourceData'] = array();
             }
-            
+
             $content['gourceData'] = array_reverse($content['gourceData']);
             foreach($content['gourceData'] as $key => $file){
                 if ($key == 0){
@@ -187,11 +187,11 @@ class Gource
                 if (isset($file['size'])){
                     $text .= Design::erstelleZeile($console, Installation::Get('listGourceData','fileSize',self::$langTemplate) , 'e', Design::formatBytes($file['size']), 'v');
                 }
-                
+
                 if (self::$onEvents['executeGource']['enabledInstall']){
                     $text .= Design::erstelleZeile($console, Installation::Get('listGourceData','select',self::$langTemplate), 'e',  Design::erstelleGruppenAuswahl($console, $data['GOURCE']['selectedData'], 'data[GOURCE][selectedData]', $file['file'], NULL, true), 'h');
                 }
-           
+
                 if ($key != count($content['gourceData'])-1){
                     $text .= Design::erstelleZeile($console, '','','','' );
                 }
@@ -208,7 +208,7 @@ class Gource
                 }
             }
         }
-        
+
         if (self::$onEvents['listGourceResult']['enabledInstall']){
             $text .= Design::erstelleZeile($console, Installation::Get('listGourceResult','listDesc',self::$langTemplate), 'e',  Design::erstelleSubmitButton(self::$onEvents['listGourceResult']['event'][0],Installation::Get('listGourceResult','list',self::$langTemplate)), 'h');
         }
@@ -218,7 +218,7 @@ class Gource
             if (!isset($content['gourceResult'])){
                 $content['gourceResult'] = array();
             }
-            
+
             $content['gourceResult'] = array_reverse($content['gourceResult']);
             foreach($content['gourceResult'] as $key => $file){
                 if ($key == 0){
@@ -229,11 +229,11 @@ class Gource
                 if (isset($file['size'])){
                     $text .= Design::erstelleZeile($console, Installation::Get('listGourceResult','fileSize',self::$langTemplate) , 'e', Design::formatBytes($file['size']), 'v');
                 }
-                
+
                 if (self::$onEvents['convertGource']['enabledInstall']){
                     $text .= Design::erstelleZeile($console, Installation::Get('listGourceResult','select',self::$langTemplate), 'e',  Design::erstelleGruppenAuswahl($console, $data['GOURCE']['selectedResult'], 'data[GOURCE][selectedResult]', $file['file'], NULL, true), 'h');
                 }
-           
+
                 if ($key != count($content['gourceResult'])-1){
                     $text .= Design::erstelleZeile($console, '','','','' );
                 }
@@ -262,7 +262,7 @@ class Gource
                 return false;
             }
         }
-        
+
         foreach($excludeContainsList as $ex){
             if (strpos($name,$ex) !== false){
                 return false;
@@ -274,11 +274,11 @@ class Gource
     public static function installCreateGourceData($data, &$fail, &$errno, &$error)
     {
         Installation::log(array('text'=>Installation::Get('main','functionBegin')));
-        
+
         $res = array();
         $location = $data['GOURCE']['path'];
         Einstellungen::generatepath($location);
-        
+
         $mainPath = $data['PL']['localPath'];
         $mainPath = str_replace(array("\\","/"), array(DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR), $mainPath);
         $pluginFiles = PlugInsInstallieren::getSelectedPluginFiles($data);
@@ -291,7 +291,7 @@ class Gource
                 $gitResults = array_merge($entries, $gitResults);
             }
         }
-        
+
         $repositories = array();
         foreach($gitResults as $git){
             $path = $git['params']['path'];
@@ -302,14 +302,14 @@ class Gource
                 $repositories[$displayName] = $mainPath. DIRECTORY_SEPARATOR .$path;
             }
         }
-        
+
         function get_filename($name){
             /*if (substr($name,0,1) === "\""){
-                
+
             }*/
             return trim(trim($name,"\""));
         }
-        
+
         $allCommits=array();
         $allTags=array();
         foreach($repositories as $repoName=>$repo){
@@ -319,12 +319,12 @@ class Gource
             @chdir($repo);
             exec('(git log --decorate=full --stat --name-status --date=raw --pretty=format:\'%ad,%ae,%an,%d\' --find-renames --full-history --all --no-notes) 2>&1', $out, $return);
             @chdir($pathOld);
-            
+
             $res['repos'][$repoName]['logStatus'] = $return;
             if ($return !== 0){
                 continue;
             }
-            
+
             $authorMap = array();
             $excludeList = array();
             $excludeContainsList = array();
@@ -340,7 +340,7 @@ class Gource
                     $excludeContainsList = $tmp['excludeContains'];
                 }
             }
-            
+
             $commit = null;
             $commits = array();
             $authors = array();
@@ -350,10 +350,10 @@ class Gource
                 $out[$i] = trim($out[$i],"'");
                 $commit = array('changes'=>array());
                 $line = explode(',',$out[$i]);
-                
+
                 $o = explode(' ',$line[0]);
                 $commit['date'] = $o[0];
-                
+
                 $commit['author']['mail'] = $line[1];
                 $commit['author']['name'] = $line[2];
                 if (isset($line[3]) && !empty($line[3])){
@@ -369,14 +369,14 @@ class Gource
                         }
                     }
                 }
-                
+
                 if (isset($authorMap[$commit['author']['mail']])){
                     $a=$authorMap[$commit['author']['mail']];
                     $commit['author']['name'] = $a[0];
                     $commit['author']['mail'] = $a[1];
                 }
                 $authors[$commit['author']['name'].'_'.$commit['author']['mail']] = $commit['author'];
-                
+
                 $b=$i+1;
                 $ignoreChanges = false;
                 for(;$b<$anz;$b++){
@@ -426,18 +426,18 @@ class Gource
             ///file_put_contents($location. DIRECTORY_SEPARATOR .$repoName.'_authors.json',json_encode($authors));
             unset($authors);
             $allCommits=array_merge($allCommits,$commits);
-            
+
             $allTags=array_merge($allTags,$tags);
         }
-        
-        
+
+
         usort($allCommits, function ($a,$b) {
              return $a['date']>$b['date'];
         });
         usort($allTags, function ($a,$b) {
              return $a['date']>$b['date'];
         });
-        
+
         // commits umwandeln in das gource format
         $result = array();
         foreach($allCommits as $commit){
@@ -446,25 +446,25 @@ class Gource
                 $result[] = implode('|',$dat);
             }
         }
-        
+
         // tags umwandeln in das gource format
         $tagResult = array();
         foreach($allTags as $tag){
             $dat = array($tag['date'],$tag['name']);
             $tagResult[] = implode('|',$dat);
         }
-        
+
         $timestamp = date('Ymd_His');
         $filename = $location. DIRECTORY_SEPARATOR .'gource_'.$timestamp.'.dat';
         file_put_contents($filename,implode("\n",$result));
         $res['outputFile'] = $filename;
         $res['outputSize'] = filesize($filename);
-        
+
         $filenameTag = $location. DIRECTORY_SEPARATOR .'gource_'.$timestamp.'.captions';
         file_put_contents($filenameTag,implode("\n",$tagResult));
         $res['outputFileTag'] = $filenameTag;
         $res['outputSizeTag'] = filesize($filenameTag);
-        
+
         Installation::log(array('text'=>Installation::Get('main','functionEnd')));
         return $res;
     }
@@ -489,7 +489,7 @@ class Gource
         Installation::log(array('text'=>Installation::Get('main','functionEnd')));
         return $res;
     }
-    
+
     public static function installListGourceResult($data, &$fail, &$errno, &$error)
     {
         Installation::log(array('text'=>Installation::Get('main','functionBegin')));
@@ -518,10 +518,10 @@ class Gource
         $file = $data['GOURCE']['selectedData'];
         $dir = dirname($file);
         $outputFile = $dir . DIRECTORY_SEPARATOR . pathinfo($file)['filename'] . '.ppm';
-        
+
         $exec = 'gource --path "'.$file.'" --caption-file '.$tagFile.' --load-config "'.dirname(__FILE__). DIRECTORY_SEPARATOR .'gource.conf" -o "'.$outputFile.'"';
         Installation::execInBackground($exec);
-            
+
         Installation::log(array('text'=>Installation::Get('main','functionEnd')));
         return $res;
     }
@@ -533,10 +533,10 @@ class Gource
         $file = $data['GOURCE']['selectedData'];
         $dir = dirname($file);
         $tagFile = $dir . DIRECTORY_SEPARATOR . pathinfo($file)['filename'] . '.captions';
-        
+
         $exec = 'gource --path "'.$file.'" --caption-file '.$tagFile.' --load-config "'.dirname(__FILE__). DIRECTORY_SEPARATOR .'gource.conf"';
         Installation::execInBackground($exec);
-            
+
         Installation::log(array('text'=>Installation::Get('main','functionEnd')));
         return $res;
     }
@@ -548,10 +548,10 @@ class Gource
         $file = $data['GOURCE']['selectedResult'];
         $dir = dirname($file);
         $outputFile = $dir . DIRECTORY_SEPARATOR . pathinfo($file)['filename'] . '.mp4';
-        
+
         $exec = 'ffmpeg -y -r 60 -f image2pipe -vcodec ppm -i "'.$file.'" -vcodec libx264 -preset ultrafast -pix_fmt yuv420p -crf 1 -threads 4 -bf 0 "'.$outputFile.'"';
         Installation::execInBackground($exec);
-            
+
         Installation::log(array('text'=>Installation::Get('main','functionEnd')));
         return $res;
     }
