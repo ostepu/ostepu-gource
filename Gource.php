@@ -57,12 +57,12 @@ class Gource
                      'selectedResult' => array('data[GOURCE][selectedResult]', NULL)
                      );
         $res['repos'] = array();
-        $pluginFiles = PlugInsInstallieren::getPluginFiles($data);
+        $pluginFiles = Packetverwaltung::getPackageDefinitions($data);
         foreach($pluginFiles as $plug){
-            $input = PlugInsInstallieren::gibPluginInhalt($data,$plug);
+            $input = Packetverwaltung::gibPacketInhalt($data,$plug);
             if ($input !== null){
                 $entries = array();
-                PlugInsInstallieren::gibPluginEintraegeNachTyp($input, 'git', $entries);
+                Packetverwaltung::gibPacketEintraegeNachTyp($input, 'git', $entries);
                 foreach ($entries as $git){
                     $path = $git['params']['path'];
                     $name=md5($path);
@@ -125,13 +125,13 @@ class Gource
         if (self::$onEvents['createGourceData']['enabledInstall']){
             $mainPath = $data['PL']['localPath'];
             $mainPath = str_replace(array("\\","/"), array(DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR), $mainPath);
-            $pluginFiles = PlugInsInstallieren::getSelectedPluginFiles($data);
+            $pluginFiles = Packetverwaltung::getSelectedPackageDefinitions($data);
             $gitResults = array();
             foreach ($pluginFiles as $plug){
-                $input = PlugInsInstallieren::gibPluginInhalt($data,$plug);
+                $input = Packetverwaltung::gibPacketInhalt($data,$plug);
                 if ($input !== null){
                     $entries = array();
-                    PlugInsInstallieren::gibPluginEintraegeNachTyp($input, 'git', $entries);
+                    Packetverwaltung::gibPacketEintraegeNachTyp($input, 'git', $entries);
                     $gitResults = array_merge($entries, $gitResults);
                 }
             }
@@ -281,13 +281,13 @@ class Gource
 
         $mainPath = $data['PL']['localPath'];
         $mainPath = str_replace(array("\\","/"), array(DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR), $mainPath);
-        $pluginFiles = PlugInsInstallieren::getSelectedPluginFiles($data);
+        $pluginFiles = Packetverwaltung::getSelectedPackageDefinitions($data);
         $gitResults = array();
         foreach ($pluginFiles as $plug){
-            $input = PlugInsInstallieren::gibPluginInhalt($data,$plug);
+            $input = Packetverwaltung::gibPacketInhalt($data,$plug);
             if ($input !== null){
                 $entries = array();
-                PlugInsInstallieren::gibPluginEintraegeNachTyp($input, 'git', $entries);
+                Packetverwaltung::gibPacketEintraegeNachTyp($input, 'git', $entries);
                 $gitResults = array_merge($entries, $gitResults);
             }
         }
@@ -311,6 +311,7 @@ class Gource
         }
 
         $allCommits=array();
+        $allDummys=array();
         $allTags=array();
         foreach($repositories as $repoName=>$repo){
             $res['repos'][$repoName] = array();
@@ -364,11 +365,11 @@ class Gource
                         if ($endsAt !== false){
                             $result = substr($line[3], $startsAt, $endsAt - $startsAt);
                             $result = explode(',',$result);
-                            $tags[] = array('date'=>$o[0], 'name'=>$repoName.': '.$result[0]);
+                            $tags[] = array('date'=>$o[0], 'name'=>$repoName.': '.str_replace('_',' ',$result[0]));
                         } else {
                             $result = substr($line[3], $startsAt);
                             $result = explode(',',$result);
-                            $tags[] = array('date'=>$o[0], 'name'=>$repoName.': '.$result[0]);
+                            $tags[] = array('date'=>$o[0], 'name'=>$repoName.': '.str_replace('_',' ',$result[0]));
                         }
                     }
                 }
@@ -424,7 +425,7 @@ class Gource
             }
             unset($commit);
             //$last = $commits[count($commits)-1];
-            //$commits[]=array('date'=>$last['date'],'author'=>array('name'=>''),'repo'=>$repoName,'changes'=>array(array('type'=>'A','file'=>'dummy')));
+            $allDummys[]=array('date'=>0,'author'=>array('name'=>''),'repo'=>$repoName,'changes'=>array(array('type'=>'D','file'=>'dummy')));
             $commits = array_reverse($commits);
             ///file_put_contents($location. DIRECTORY_SEPARATOR .$repoName.'_authors.json',json_encode($authors));
             unset($authors);
@@ -437,6 +438,14 @@ class Gource
         usort($allCommits, function ($a,$b) {
              return $a['date']>$b['date'];
         });
+        
+        $first = $allCommits[0];
+        foreach($allDummys as $key => $dummy){
+            $allDummys[$key]['date']=$first['date']+$key;
+            $allDummys[$key]['author']['name']=$first['author']['name'];
+        }
+        $allCommits=array_merge($allDummys,$allCommits);
+        
         usort($allTags, function ($a,$b) {
              return $a['date']>$b['date'];
         });
@@ -504,7 +513,7 @@ class Gource
                 if (pathinfo($file)['extension'] === 'ppm'){
                     $data = array();
                     $data['file'] = $file;
-                    $data['size'] = filesize($file);
+                    $data['size'] = @filesize($file);
                     $res['gourceResult'][] = $data;
                 }
             }
