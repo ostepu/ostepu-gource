@@ -317,7 +317,7 @@ class Gource
             $pathOld = getcwd();
             $out=null;
             @chdir($repo);
-            exec('(git log --decorate=full --stat --name-status --date=raw --pretty=format:\'%ad,%ae,%an,%d\' --find-renames --full-history --all --no-notes) 2>&1', $out, $return);
+            exec('(git log --decorate=full --stat --name-status --date=raw --pretty=format:\'%ad,%ae,%an,%d\' -M75% -C75% --all --no-notes) 2>&1', $out, $return);
             @chdir($pathOld);
 
             $res['repos'][$repoName]['logStatus'] = $return;
@@ -364,7 +364,10 @@ class Gource
                         if ($endsAt !== false){
                             $result = substr($line[3], $startsAt, $endsAt - $startsAt);
                             $result = explode(',',$result);
-                            echo $result[0]."<br>";
+                            $tags[] = array('date'=>$o[0], 'name'=>$repoName.': '.$result[0]);
+                        } else {
+                            $result = substr($line[3], $startsAt);
+                            $result = explode(',',$result);
                             $tags[] = array('date'=>$o[0], 'name'=>$repoName.': '.$result[0]);
                         }
                     }
@@ -518,6 +521,7 @@ class Gource
         $file = $data['GOURCE']['selectedData'];
         $dir = dirname($file);
         $outputFile = $dir . DIRECTORY_SEPARATOR . pathinfo($file)['filename'] . '.ppm';
+        $tagFile = $dir . DIRECTORY_SEPARATOR . pathinfo($file)['filename'] . '.captions';
 
         $exec = 'gource --path "'.$file.'" --caption-file '.$tagFile.' --load-config "'.dirname(__FILE__). DIRECTORY_SEPARATOR .'gource.conf" -o "'.$outputFile.'"';
         Installation::execInBackground($exec);
