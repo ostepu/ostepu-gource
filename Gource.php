@@ -57,12 +57,12 @@ class Gource
                      'selectedResult' => array('data[GOURCE][selectedResult]', NULL)
                      );
         $res['repos'] = array();
-        $pluginFiles = Packetverwaltung::getPackageDefinitions($data);
+        $pluginFiles = Paketverwaltung::getPackageDefinitions($data);
         foreach($pluginFiles as $plug){
-            $input = Packetverwaltung::gibPacketInhalt($data,$plug);
+            $input = Paketverwaltung::gibPaketInhalt($data,$plug);
             if ($input !== null){
                 $entries = array();
-                Packetverwaltung::gibPacketEintraegeNachTyp($input, 'git', $entries);
+                Paketverwaltung::gibPaketEintraegeNachTyp($input, 'git', $entries);
                 foreach ($entries as $git){
                     $path = $git['params']['path'];
                     $name=md5($path);
@@ -125,13 +125,13 @@ class Gource
         if (self::$onEvents['createGourceData']['enabledInstall']){
             $mainPath = $data['PL']['localPath'];
             $mainPath = str_replace(array("\\","/"), array(DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR), $mainPath);
-            $pluginFiles = Packetverwaltung::getSelectedPackageDefinitions($data);
+            $pluginFiles = Paketverwaltung::getSelectedPackageDefinitions($data);
             $gitResults = array();
             foreach ($pluginFiles as $plug){
-                $input = Packetverwaltung::gibPacketInhalt($data,$plug);
+                $input = Paketverwaltung::gibPaketInhalt($data,$plug);
                 if ($input !== null){
                     $entries = array();
-                    Packetverwaltung::gibPacketEintraegeNachTyp($input, 'git', $entries);
+                    Paketverwaltung::gibPaketEintraegeNachTyp($input, 'git', $entries);
                     $gitResults = array_merge($entries, $gitResults);
                 }
             }
@@ -281,13 +281,13 @@ class Gource
 
         $mainPath = $data['PL']['localPath'];
         $mainPath = str_replace(array("\\","/"), array(DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR), $mainPath);
-        $pluginFiles = Packetverwaltung::getSelectedPackageDefinitions($data);
+        $pluginFiles = Paketverwaltung::getSelectedPackageDefinitions($data);
         $gitResults = array();
         foreach ($pluginFiles as $plug){
-            $input = Packetverwaltung::gibPacketInhalt($data,$plug);
+            $input = Paketverwaltung::gibPaketInhalt($data,$plug);
             if ($input !== null){
                 $entries = array();
-                Packetverwaltung::gibPacketEintraegeNachTyp($input, 'git', $entries);
+                Paketverwaltung::gibPaketEintraegeNachTyp($input, 'git', $entries);
                 $gitResults = array_merge($entries, $gitResults);
             }
         }
