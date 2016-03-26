@@ -358,7 +358,9 @@ class Gource
                 $commit['author']['mail'] = $line[1];
                 $commit['author']['name'] = $line[2];
                 if (isset($line[3]) && !empty($line[3])){
+                    $line[3] = implode(',',array_slice($line,3));
                     $startsAt = strpos($line[3], "refs/tags/");
+
                     if ($startsAt !== false){
                         $startsAt += strlen("refs/tags/");
                         $endsAt = strpos($line[3], ")", $startsAt);
