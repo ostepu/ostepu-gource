@@ -123,6 +123,10 @@ class Gource {
         if (!Einstellungen::$accessAllowed) {
             return;
         }
+        
+        if (!Paketverwaltung::isPackageSelected($data, 'GOURCE')){
+            return;
+        }
 
         Installation::log(array('text' => Installation::Get('main', 'functionBegin')));
         $text = '';
