@@ -9,7 +9,7 @@
         "/phpfastcache/",
         "/fpdf/",
         "/tfpdf/",
-        "jquery-2.0.3.min.js",
+        "jquery",
         "retina.js",
         "/html2pdf/",
         "/ckeditor/",

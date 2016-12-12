@@ -54,7 +54,8 @@ class Gource {
         $res = array(
             'path' => array('data[GOURCE][path]', '/var/www/gource'),
             'selectedData' => array('data[GOURCE][selectedData]', NULL),
-            'selectedResult' => array('data[GOURCE][selectedResult]', NULL)
+            'selectedResult' => array('data[GOURCE][selectedResult]', NULL),
+            'beginTimestamp' => array('data[GOURCE][beginTimestamp]', '1970-12-08')
         );
         $res['repos'] = array();
         $pluginFiles = Paketverwaltung::getPackageDefinitions($data);
@@ -109,6 +110,9 @@ class Gource {
         }
         $text .= Design::erstelleVersteckteEingabezeile($console, $data['GOURCE']['selectedResult'], 'data[GOURCE][selectedResult]', $def['selectedResult'][1], true);
 
+        $text .= Design::erstelleVersteckteEingabezeile($console, $data['GOURCE']['beginTimestamp'], 'data[GOURCE][beginTimestamp]', $def['beginTimestamp'][1], true);
+
+        
         foreach ($def['repos'] as $defName => $defVar) {
             $text .= Design::erstelleVersteckteEingabezeile($console, $data['GOURCE']['REPO'][$defName], $defVar[0], $defVar[1], true);
         }
@@ -133,6 +137,8 @@ class Gource {
         $text .= Design::erstelleBeschreibung($console, Installation::Get('main', 'description', self::$langTemplate));
 
         $text .= Design::erstelleZeile($console, Installation::Get('createGourceData', 'path', self::$langTemplate), 'e', Design::erstelleEingabezeile($console, $data['GOURCE']['path'], 'data[GOURCE][path]', $data['GOURCE']['path'], true), 'v');
+        $text .= Design::erstelleZeile($console, Installation::Get('createGourceData', 'beginTimestamp', self::$langTemplate), 'e', Design::erstelleDatumsfeld($console, $data['GOURCE']['beginTimestamp'], 'data[GOURCE][beginTimestamp]', $data['GOURCE']['beginTimestamp'], true), 'v');
+        
         if (self::$onEvents['createGourceData']['enabledInstall']) {
             $mainPath = $data['PL']['localPath'];
             $mainPath = str_replace(array("\\", "/"), array(DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR), $mainPath);
@@ -452,17 +458,52 @@ class Gource {
         }
 
 
+        // nun müssen alle Commits aufsteigend sortiert werden
         usort($allCommits, function ($a, $b) {
             return $a['date'] > $b['date'];
         });
-
+        
+        // hier werden die Commits aussortiert
+        $beginTimestamp = '0';
+        if (isset($data['GOURCE']['beginTimestamp'])){
+            $beginTimestamp = strtotime($data['GOURCE']['beginTimestamp']);
+        }
+        
+        $initFiles = array();
+        
+        foreach($allCommits as $key => $commit){
+            if (intval($commit['date']) < intval($beginTimestamp)){
+                foreach ($commit['changes'] as $change) {
+                    if ($change['type'] == 'A' || $change['type'] == 'M') {
+                        $initFiles[$commit['repo'].$change['file']] = array($commit['repo'], $change['file']);
+                        continue;
+                    }
+                    if ($change['type'] == 'D') {
+                        unset($initFiles[$commit['repo'].$change['file']]);
+                        continue;
+                    }
+                }
+                unset($allCommits[$key]);
+            } else {
+                break;
+            }            
+        }
+        
+        $allCommits = array_values($allCommits);
+        
         $first = $allCommits[0];
+        
+        foreach($initFiles as $key => $file){
+            $allDummys[] = array('date' => 0, 'author' => array('name' => ''), 'repo' => $file[0], 'changes' => array(array('type' => 'A', 'file' => $file[1])));
+        }
+
         foreach ($allDummys as $key => $dummy) {
-            $allDummys[$key]['date'] = $first['date'] + $key;
+            $allDummys[$key]['date'] = $first['date']; // + $key
             $allDummys[$key]['author']['name'] = $first['author']['name'];
         }
         $allCommits = array_merge($allDummys, $allCommits);
 
+        // nun müssen alle Tags aufsteigend sortiert werden
         usort($allTags, function ($a, $b) {
             return $a['date'] > $b['date'];
         });
@@ -506,10 +547,10 @@ class Gource {
             $res['gourceData'] = array();
             foreach ($files['files'] as $file) {
                 if (pathinfo($file)['extension'] === 'dat') {
-                    $data = array();
-                    $data['file'] = $file;
-                    $data['size'] = filesize($file);
-                    $res['gourceData'][] = $data;
+                    $inpData = array();
+                    $inpData['file'] = $file;
+                    $inpData['size'] = filesize($file);
+                    $res['gourceData'][] = $inpData;
                 }
             }
         }
